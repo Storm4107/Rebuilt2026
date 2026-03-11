@@ -11,8 +11,10 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -21,6 +23,8 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Conveyer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Arm;
+import frc.robot.Commands.armCommand;
 import frc.robot.Commands.intakeCommand;
 
 public class RobotContainer {
@@ -37,12 +41,14 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
+    private final CommandGenericHID buttonBoard = new CommandGenericHID(1);
+
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final Intake intake = new Intake();
     public final Conveyer conveyer = new Conveyer();
-
+    public final Arm arm = new Arm();
 
     public RobotContainer() {
         configureBindings();
@@ -69,8 +75,11 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        joystick.button(3).whileTrue(new intakeCommand(intake, conveyer, true));
-        joystick.button(4).whileTrue(new intakeCommand(intake, conveyer, false));
+        buttonBoard.axisGreaterThan(3, 0).onTrue(new intakeCommand(intake, conveyer, false));
+        buttonBoard.button(6).onTrue(new intakeCommand(intake, conveyer, true));
+
+        buttonBoard.button(4).onTrue(new armCommand(arm,0));
+        buttonBoard.button(2).onTrue(new armCommand(arm,1));
 
 
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
