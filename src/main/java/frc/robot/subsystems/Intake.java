@@ -29,7 +29,7 @@ public class Intake extends SubsystemBase{
     public void periodic() {
         switch (currentState) {
             case INTAKE:
-                intake.setControl(new DutyCycleOut(-.8));
+                intake.setControl(new DutyCycleOut(-.3));
                 break;
 
             case REVERSE:

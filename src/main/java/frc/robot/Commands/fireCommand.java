@@ -8,34 +8,24 @@ import frc.robot.subsystems.Breach.BreachStates;
 import frc.robot.subsystems.Conveyer.conveyerStates;
 import frc.robot.subsystems.Intake.intakeStates;
 
-public class intakeCommand extends Command{
+public class fireCommand extends Command{
 
     private final Intake intake;
     private final Conveyer conveyer;
     private final Breach breach;
-    private final boolean intaking;
 
-
-    public intakeCommand(Intake intakeSub, Conveyer conveyerSub, Breach breachSub, boolean intaking){
+    public fireCommand(Intake intakeSub, Conveyer conveyerSub, Breach breachSub){
         intake = intakeSub;
         conveyer = conveyerSub;
         breach = breachSub;
-        this.intaking = intaking;
     }
 
     @Override
     public void execute(){
 
-        if (intaking) {
             intake.setState(Intake.intakeStates.INTAKE);
             conveyer.setState(conveyerStates.INTAKE);
-            breach.setState(BreachStates.INTAKING);
-        } else {
-            intake.setState(Intake.intakeStates.REVERSE);
-            breach.setState(BreachStates.REVERSE);
-            conveyer.setState(conveyerStates.REVERSE);
-        }
-
+            breach.setState(BreachStates.FIRE);
         
     }
 
@@ -44,6 +34,5 @@ public class intakeCommand extends Command{
         intake.setState(Intake.intakeStates.IDLE);
         conveyer.setState(conveyerStates.IDLE);
         breach.setState(BreachStates.IDLE);
-
     }
 }

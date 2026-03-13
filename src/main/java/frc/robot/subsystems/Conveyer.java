@@ -28,7 +28,7 @@ public class Conveyer extends SubsystemBase{
     public void periodic() {
         switch (currentState) {
             case INTAKE:
-                conveyer.setControl(new DutyCycleOut(-.2));
+                conveyer.setControl(new DutyCycleOut(-.4));
                 break;
 
             case REVERSE:

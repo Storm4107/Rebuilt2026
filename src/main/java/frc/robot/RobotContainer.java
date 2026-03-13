@@ -14,18 +14,23 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Conveyer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Breach;
+import frc.robot.Commands.CommandSwerveDrivetrain;
 import frc.robot.Commands.armCommand;
+import frc.robot.Commands.fireCommand;
 import frc.robot.Commands.intakeCommand;
+import frc.robot.Commands.shootCommand;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -49,6 +54,8 @@ public class RobotContainer {
     public final Intake intake = new Intake();
     public final Conveyer conveyer = new Conveyer();
     public final Arm arm = new Arm();
+    public final Shooter shooter = new Shooter();
+    public final Breach breach = new Breach();
 
     public RobotContainer() {
         configureBindings();
@@ -62,11 +69,11 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                    .withRotationalRate(-joystick.getRawAxis(2) * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
-
+        joystick.button(16).onTrue(new InstantCommand(() -> drivetrain.resetHeading()));
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -75,11 +82,15 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        buttonBoard.axisGreaterThan(3, 0).onTrue(new intakeCommand(intake, conveyer, false));
-        buttonBoard.button(6).onTrue(new intakeCommand(intake, conveyer, true));
+        buttonBoard.axisGreaterThan(3, 0).whileTrue(new intakeCommand(intake, conveyer, breach, false));
+        buttonBoard.button(6).whileTrue(new intakeCommand(intake, conveyer, breach, true));
 
-        buttonBoard.button(4).onTrue(new armCommand(arm,0));
-        buttonBoard.button(2).onTrue(new armCommand(arm,1));
+        buttonBoard.button(4).whileTrue(new armCommand(arm,0));
+        buttonBoard.button(2).whileTrue(new armCommand(arm,1));
+
+        buttonBoard.button(3).whileTrue(new shootCommand(shooter, 1));
+
+        buttonBoard.button(1).whileTrue(new fireCommand(intake, conveyer, breach));
 
 
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));

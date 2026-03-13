@@ -1,30 +1,23 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Amps;
-
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Arm extends SubsystemBase{
+public class Arm extends SubsystemBase {
 
     public static final CANBus kCANBus = new CANBus("CANivore", "./logs/example.hoot");
 
     private final TalonFX leftArm = new TalonFX(30, kCANBus);
     private final TalonFX rightArm = new TalonFX(31, kCANBus);
+
+    private final MotionMagicDutyCycle motionMagic = new MotionMagicDutyCycle(0);
 
     public enum armStates {
         INTAKE,
@@ -34,82 +27,78 @@ public class Arm extends SubsystemBase{
 
     private armStates currentState = armStates.IDLE;
 
-    private final PIDController pid = new PIDController(.1,0,0);
-
     private double targetPos = 0;
 
-        public void setState(armStates newState) {
-            if (newState != currentState) {
-                pid.reset();
-            }
+    public Arm() {
 
-            currentState = newState;
+        TalonFXConfiguration config = new TalonFXConfiguration();
 
-            switch (newState) {
-                case INTAKE:
-                //enter value from the encoders ()
-                targetPos = 66;
-                    break;
+        // Motor behavior
+        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-                case STOW:
-                //enter value from the encoders ()
-                targetPos = 0;
+        // Motion Magic motion profile
+        config.MotionMagic.MotionMagicCruiseVelocity = 140;
+        config.MotionMagic.MotionMagicAcceleration = 160;
+
+        // PID values inside the Talon
+        config.Slot0.kP = 0.1;
+        config.Slot0.kI = 0.0;
+        config.Slot0.kD = 0.0;
+
+        // gravity feedforward
+        config.Slot0.kG = 0.05;
+
+        //soft limits 
+        config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 70;
+
+        config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+        config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+
+        leftArm.getConfigurator().apply(config);
+        rightArm.getConfigurator().apply(config);
+
+        // Make the right motor follow the left
+        rightArm.setControl(new Follower(leftArm.getDeviceID(), true));
+    }
+
+    public void setState(armStates newState) {
+
+        currentState = newState;
+
+        switch (newState) {
+
+            case INTAKE:
+                targetPos = 69; // 67 
                 break;
 
-                case IDLE:
-                //enter value from the encoders ()
-                targetPos = 0;
+            case STOW:
+                targetPos = 0; // 0 is ideal
                 break;
-            }
+
+            case IDLE:
+                targetPos = 49; // 45
+                break;
         }
+    }
 
-        public Arm() {
+    public double getArmPosition() {
+        return leftArm.getPosition().getValueAsDouble();
+    }
 
-            TalonFXConfiguration leftConfig = new TalonFXConfiguration();
-    TalonFXConfiguration rightConfig = new TalonFXConfiguration();
+    public armStates getCurrentState() {
+        return currentState;
+    }
 
-    // Brake mode so the arm holds position
-    leftConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    rightConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    @Override
+    public void periodic() {
 
-    // Inversion
-    leftConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    rightConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        // Motion Magic position control
+        leftArm.setControl(motionMagic.withPosition(targetPos));
 
-    // Current limit
-    leftConfig.CurrentLimits.SupplyCurrentLimit = 40;
-    leftConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        SmartDashboard.putNumber("Arm Encoder", leftArm.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("Arm Target", targetPos);
+        SmartDashboard.putString("Arm State", currentState.toString());
 
-    rightConfig.CurrentLimits.SupplyCurrentLimit = 40;
-    rightConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-
-    // Apply configs
-    leftArm.getConfigurator().apply(leftConfig);
-    rightArm.getConfigurator().apply(rightConfig);
-        }
-
-        public armStates getCurrentState() {
-            return currentState;
-        }
-
-        public double getArmPos() {
-            return rightArm.getPosition().getValueAsDouble();
-        }
-
-        @Override
-        public void periodic() {
-            double position = rightArm.getPosition().getValueAsDouble();
-            double power = pid.calculate(position, targetPos);
-            pid.setTolerance(1);
-
-            power = MathUtil.clamp(power, -1, 1);
-
-            leftArm.setControl(new DutyCycleOut(power));
-            rightArm.setControl(new DutyCycleOut(power));
-
-            SmartDashboard.putNumber("Arm Encoder", position);
-            SmartDashboard.putNumber("Arm Target", targetPos);
-            SmartDashboard.putString("Arm State", currentState.toString());
-        }
-
+    }
 }

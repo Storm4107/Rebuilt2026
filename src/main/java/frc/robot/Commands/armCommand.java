@@ -37,14 +37,7 @@ public class armCommand extends Command {
     }
 
     @Override
-    public boolean isFinished() {
-        return true;
-    }
-
-    @Override
     public void end(boolean interrupted) {
-        if (interrupted) {
             arm.setState(armStates.IDLE);
-        }
     }
 }
