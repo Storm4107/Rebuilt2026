@@ -12,7 +12,8 @@ public class shootCommand extends Command {
     // Array mapping preset numbers to states
     private final ShooterState[] presets = {
         ShooterState.IDLE,
-        ShooterState.SHORTSHOT
+        ShooterState.SHORTSHOT,
+        ShooterState.LONGSHOT
     };
 
     public shootCommand(Shooter shooterSub, int preset) {

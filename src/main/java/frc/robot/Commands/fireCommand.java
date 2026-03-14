@@ -23,8 +23,8 @@ public class fireCommand extends Command{
     @Override
     public void execute(){
 
-            intake.setState(Intake.intakeStates.INTAKE);
-            conveyer.setState(conveyerStates.INTAKE);
+            intake.setState(Intake.intakeStates.FIRE);
+            conveyer.setState(conveyerStates.FIRE);
             breach.setState(BreachStates.FIRE);
         
     }

@@ -26,20 +26,19 @@ public class Shooter extends SubsystemBase {
 
     private final TalonFX leftShooter = new TalonFX(42, kCANBus);
     private final TalonFX rightShooter = new TalonFX(43, kCANBus);
-    private final TalonFXS hood = new TalonFXS(44, kCANBus);
+    //private final TalonFXS hood = new TalonFXS(44, kCANBus);
     private final CANcoder hoodEncoder = new CANcoder(45, kCANBus);
 
     // Motion Magic velocity control request
     private final MotionMagicVelocityDutyCycle velocityRequest =
         new MotionMagicVelocityDutyCycle(0);
 
-    private final MotionMagicDutyCycle motionMagic = 
-        new MotionMagicDutyCycle(0);
+    //private final MotionMagicDutyCycle motionMagic =  new MotionMagicDutyCycle(0);
 
 
     private static final double VELOCITY_TOLERANCE = 5; // RPS
 
-    private double targetPos = 0;
+    //private double targetPos = 0;
 
     private double targetVelocity = 0;
 
@@ -54,31 +53,31 @@ public class Shooter extends SubsystemBase {
     public Shooter() {
 
         TalonFXConfiguration config = new TalonFXConfiguration();
-        TalonFXSConfiguration hoodConfig = new TalonFXSConfiguration();
+        //TalonFXSConfiguration hoodConfig = new TalonFXSConfiguration();
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
 
-        hoodConfig.Commutation.MotorArrangement = MotorArrangementValue.NEO550_JST;
+        //hoodConfig.Commutation.MotorArrangement = MotorArrangementValue.NEO550_JST;
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        //hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        hoodConfig.MotionMagic.MotionMagicCruiseVelocity = 40;
-        hoodConfig.MotionMagic.MotionMagicAcceleration = 30;
+        //hoodConfig.MotionMagic.MotionMagicCruiseVelocity = 40;
+        //hoodConfig.MotionMagic.MotionMagicAcceleration = 30;
 
-        hoodConfig.Slot0.kP = 0.1;
-        hoodConfig.Slot0.kI = 0.0;
-        hoodConfig.Slot0.kD = 0.0;
+        //hoodConfig.Slot0.kP = 1;
+        //hoodConfig.Slot0.kI = 0.0;
+        //hoodConfig.Slot0.kD = 0.0;
 
-        hoodConfig.Slot0.kG = 0.05;
+        //hoodConfig.Slot0.kG = 0.05;
 
-        hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+        /*hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
         hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 2;
 
         hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
+        hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;*/
 
-        hoodConfig.ExternalFeedback.FeedbackRemoteSensorID = hoodEncoder.getDeviceID();
-        hoodConfig.ExternalFeedback.ExternalFeedbackSensorSource = ExternalFeedbackSensorSourceValue.RemoteCANcoder;
+        //hoodConfig.ExternalFeedback.FeedbackRemoteSensorID = hoodEncoder.getDeviceID();
+        //hoodConfig.ExternalFeedback.ExternalFeedbackSensorSource = ExternalFeedbackSensorSourceValue.RemoteCANcoder;
 
         // Velocity PID
         config.Slot0.kP = 0.035;
@@ -92,12 +91,12 @@ public class Shooter extends SubsystemBase {
 
         encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
 
-        hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        //hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         leftShooter.getConfigurator().apply(config);
         rightShooter.getConfigurator().apply(config);
-        hood.getConfigurator().apply(hoodConfig);
-        hoodEncoder.getConfigurator().apply(encoderConfig);
+        //hood.getConfigurator().apply(hoodConfig);
+        //hoodEncoder.getConfigurator().apply(encoderConfig);
 
         // Right motor follows the left
         rightShooter.setControl(new Follower(leftShooter.getDeviceID(), true));
@@ -111,17 +110,17 @@ public class Shooter extends SubsystemBase {
 
             case IDLE:
                 targetVelocity = 0;
-                targetPos = 0;
+                //targetPos = 0;
                 break;
 
             case SHORTSHOT:
                 targetVelocity = 40; // rotations per second
-                targetPos = .2;
+                //targetPos = .2;
                 break;
 
             case LONGSHOT:
-                targetVelocity = 60; // rotations per second
-                targetPos = .7;
+                targetVelocity = 50; // rotations per second
+                //targetPos = .7;
                 break;
         }
     }
@@ -151,7 +150,7 @@ public class Shooter extends SubsystemBase {
             velocityRequest.withVelocity(targetVelocity)
             );
 
-            hood.setControl(motionMagic.withPosition(targetPos));
+            //hood.setControl(motionMagic.withPosition(targetPos));
 
             break;
 
@@ -160,7 +159,7 @@ public class Shooter extends SubsystemBase {
                     velocityRequest.withVelocity(targetVelocity)
             );
 
-            hood.setControl(motionMagic.withPosition(targetPos));
+            //hood.setControl(motionMagic.withPosition(targetPos));
 
             break;
 
@@ -169,7 +168,7 @@ public class Shooter extends SubsystemBase {
                     velocityRequest.withVelocity(targetVelocity)
             );
 
-            hood.setControl(motionMagic.withPosition(targetPos));
+            //hood.setControl(motionMagic.withPosition(targetPos));
             break;
         }
 
@@ -180,6 +179,6 @@ public class Shooter extends SubsystemBase {
         SmartDashboard.putBoolean("Shooter Ready", atSpeed());
 
         SmartDashboard.putNumber("hood Encoder", hoodEncoder.getPosition().getValueAsDouble());
-        SmartDashboard.putNumber("hood Target", targetPos);
+        //SmartDashboard.putNumber("hood Target", targetPos);
     }
 }

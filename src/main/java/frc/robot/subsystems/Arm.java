@@ -77,7 +77,7 @@ public class Arm extends SubsystemBase {
                 break;
 
             case IDLE:
-                targetPos = 49; // 45
+                targetPos = 58; // 45
                 break;
         }
     }

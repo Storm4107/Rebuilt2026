@@ -88,11 +88,12 @@ public class RobotContainer {
         buttonBoard.button(4).whileTrue(new armCommand(arm,0));
         buttonBoard.button(2).whileTrue(new armCommand(arm,1));
 
-        buttonBoard.button(3).whileTrue(new shootCommand(shooter, 1));
+        buttonBoard.pov(180).whileTrue(new shootCommand(shooter, 1));
+        buttonBoard.pov(0).whileTrue(new shootCommand(shooter,2));
+
 
         buttonBoard.button(1).whileTrue(new fireCommand(intake, conveyer, breach));
-
-
+        
         joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

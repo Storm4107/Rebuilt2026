@@ -12,7 +12,7 @@ public class Conveyer extends SubsystemBase{
     private final TalonFX conveyer = new TalonFX(33, kCANBus);
 
     //decelaring the Intake States
-    public enum conveyerStates {INTAKE, IDLE, REVERSE}
+    public enum conveyerStates {INTAKE, IDLE, REVERSE, FIRE}
     // sets the current (default) state of the intake
     private conveyerStates currentState = conveyerStates.IDLE;
 
@@ -33,6 +33,10 @@ public class Conveyer extends SubsystemBase{
 
             case REVERSE:
             conveyer.setControl(new DutyCycleOut(.2));
+                break;
+
+            case FIRE:
+            conveyer.setControl(new DutyCycleOut(-.7));
                 break;
 
             case IDLE:

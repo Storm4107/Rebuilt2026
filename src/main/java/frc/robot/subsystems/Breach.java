@@ -77,8 +77,8 @@ public class Breach extends SubsystemBase{
                 break;
 
             case FIRE:
-                leftBreach.setControl(new DutyCycleOut(.3));
-                rightBreach.setControl(new DutyCycleOut(.3));
+                leftBreach.setControl(new DutyCycleOut(.5));
+                rightBreach.setControl(new DutyCycleOut(.5));
                 break;
         }
     }

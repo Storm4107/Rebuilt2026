@@ -13,7 +13,7 @@ public class Intake extends SubsystemBase{
     private final TalonFX intake = new TalonFX(34, kCANBus);
 
     //decelaring the Intake States
-    public enum intakeStates {INTAKE, IDLE, REVERSE}
+    public enum intakeStates {INTAKE, IDLE, REVERSE, FIRE}
     // sets the current (default) state of the intake
     private intakeStates currentState = intakeStates.IDLE;
 
@@ -34,6 +34,10 @@ public class Intake extends SubsystemBase{
 
             case REVERSE:
             intake.setControl(new DutyCycleOut(.2));
+                break;
+
+            case FIRE:
+            intake.setControl(new DutyCycleOut(-.6));
                 break;
 
             case IDLE:
