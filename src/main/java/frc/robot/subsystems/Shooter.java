@@ -2,21 +2,20 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
 import com.ctre.phoenix6.controls.MotionMagicVelocityDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.TalonFXS;
-import com.ctre.phoenix6.signals.ExternalFeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorArrangementValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -26,111 +25,108 @@ public class Shooter extends SubsystemBase {
 
     private final TalonFX leftShooter = new TalonFX(42, kCANBus);
     private final TalonFX rightShooter = new TalonFX(43, kCANBus);
-    //private final TalonFXS hood = new TalonFXS(44, kCANBus);
-    private final CANcoder hoodEncoder = new CANcoder(45, kCANBus);
+    private final TalonFX hood = new TalonFX(44, kCANBus);
 
-    // Motion Magic velocity control request
-    private final MotionMagicVelocityDutyCycle velocityRequest =
-        new MotionMagicVelocityDutyCycle(0);
+    private final MotionMagicDutyCycle motionMagic = new MotionMagicDutyCycle(0);
 
-    //private final MotionMagicDutyCycle motionMagic =  new MotionMagicDutyCycle(0);
+    public enum shooterStates {
+        IDLE,
+        SHORTSHOT,
+        LONGSHOT,
+        PASS
+    }
 
+    private shooterStates currentState = shooterStates.IDLE;
 
-    private static final double VELOCITY_TOLERANCE = 5; // RPS
-
-    //private double targetPos = 0;
+    private final PIDController pid = new PIDController(0.03,0,0); // shooter PID
 
     private double targetVelocity = 0;
 
-    public enum ShooterState {
-        IDLE,
-        SHORTSHOT,
-        LONGSHOT
-    }
+    private double targetPos = 0;
 
-    private ShooterState currentState = ShooterState.IDLE;
+    private static final double HOOD_TOLERANCE = 0.1;
 
     public Shooter() {
 
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        //TalonFXSConfiguration hoodConfig = new TalonFXSConfiguration();
-        CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+        TalonFXConfiguration shootConfig = new TalonFXConfiguration(); // creating shooterConfigs
 
-        //hoodConfig.Commutation.MotorArrangement = MotorArrangementValue.NEO550_JST;
+        TalonFXConfiguration hoodConfig = new TalonFXConfiguration(); // creating hoodConfigs
 
-        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        //hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        //shooter Configs
 
-        //hoodConfig.MotionMagic.MotionMagicCruiseVelocity = 40;
-        //hoodConfig.MotionMagic.MotionMagicAcceleration = 30;
+        shootConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        //hoodConfig.Slot0.kP = 1;
-        //hoodConfig.Slot0.kI = 0.0;
-        //hoodConfig.Slot0.kD = 0.0;
+        //hood Configs 
 
-        //hoodConfig.Slot0.kG = 0.05;
+        hoodConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+        hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+        hoodConfig.MotionMagic.MotionMagicCruiseVelocity = 280;
+        hoodConfig.MotionMagic.MotionMagicAcceleration = 210;
+
+        hoodConfig.Slot0.kP = .1;
+        hoodConfig.Slot0.kI = 0.0;
+        hoodConfig.Slot0.kD = 0.0;
+        hoodConfig.Slot0.kG = 0.05;
+
+        hoodConfig.CurrentLimits.SupplyCurrentLimit = 30;
 
         /*hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-        hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 2;
+        hoodConfig.SoftwareLimitSwitch.ForwardSoftLimitThreshold = -.2;
 
         hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-        hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;*/
+        hoodConfig.SoftwareLimitSwitch.ReverseSoftLimitThreshold = -1;*/
 
-        //hoodConfig.ExternalFeedback.FeedbackRemoteSensorID = hoodEncoder.getDeviceID();
-        //hoodConfig.ExternalFeedback.ExternalFeedbackSensorSource = ExternalFeedbackSensorSourceValue.RemoteCANcoder;
+        leftShooter.getConfigurator().apply(shootConfig);
+        rightShooter.getConfigurator().apply(shootConfig);
 
-        // Velocity PID
-        config.Slot0.kP = 0.035;
-        config.Slot0.kI = 0.0;
-        config.Slot0.kD = 0.0;
-        config.Slot0.kV = 0.0;
+        hood.getConfigurator().apply(hoodConfig);
 
-        // Motion Magic velocity ramp settings
-        config.MotionMagic.MotionMagicAcceleration = 30; // RPS per second
-        config.MotionMagic.MotionMagicJerk = 0;         // change in accel
+        hood.setPosition(0);
 
-        encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-
-        //hoodConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-
-        leftShooter.getConfigurator().apply(config);
-        rightShooter.getConfigurator().apply(config);
-        //hood.getConfigurator().apply(hoodConfig);
-        //hoodEncoder.getConfigurator().apply(encoderConfig);
-
-        // Right motor follows the left
         rightShooter.setControl(new Follower(leftShooter.getDeviceID(), true));
     }
 
-    public void setState(ShooterState newState) {
+    public void setState(shooterStates newState) {
+        if (newState != currentState) {
+            pid.reset();
+        }
 
         currentState = newState;
 
         switch (newState) {
-
             case IDLE:
-                targetVelocity = 0;
-                //targetPos = 0;
-                break;
+            targetVelocity = 0;
+            targetPos = -0.02;
+            break;
 
             case SHORTSHOT:
-                targetVelocity = 40; // rotations per second
-                //targetPos = .2;
-                break;
+            targetVelocity = 40; // is 30
+            //targetPos = .2;
+            break;
 
             case LONGSHOT:
-                targetVelocity = 50; // rotations per second
-                //targetPos = .7;
-                break;
+            targetVelocity = 50;
+            targetPos = .3;
+            break;
+
+            case PASS:
+            targetVelocity = 120;
+            targetPos = .7;
+            break;
         }
+
+        pid.setSetpoint(targetVelocity);
     }
 
-    public ShooterState getState() {
+    public boolean hoodAtTarget() {
+        double error = Math.abs(getHoodPos() - targetPos);
+        return error < HOOD_TOLERANCE;
+    }
+
+    public shooterStates getCurrentState() {
         return currentState;
-    }
-
-    public double getHoodPosition() {
-        return hoodEncoder.getPosition().getValueAsDouble();
     }
 
     public double getShooterVelocity() {
@@ -138,47 +134,51 @@ public class Shooter extends SubsystemBase {
     }
 
     public boolean atSpeed() {
-        return Math.abs(getShooterVelocity() - targetVelocity) < VELOCITY_TOLERANCE;
+        return pid.atSetpoint();
     }
 
-    @Override
+    public double getHoodPos() {
+        return hood.getPosition().getValueAsDouble();
+    }
+
+    @Override 
     public void periodic() {
+
+        double hoodError = targetPos - hood.getPosition().getValueAsDouble();
+        
+        double velocity = leftShooter.getVelocity().getValueAsDouble();
+        double power = pid.calculate(velocity, targetVelocity);
 
         switch (currentState) {
             case IDLE:
-                leftShooter.setControl(
-            velocityRequest.withVelocity(targetVelocity)
-            );
-
-            //hood.setControl(motionMagic.withPosition(targetPos));
-
-            break;
+            leftShooter.setControl(new DutyCycleOut(power));
+            hood.setControl(motionMagic.withPosition(targetPos));
+                break;
 
             case SHORTSHOT:
-                leftShooter.setControl(
-                    velocityRequest.withVelocity(targetVelocity)
-            );
-
-            //hood.setControl(motionMagic.withPosition(targetPos));
-
+            leftShooter.setControl(new DutyCycleOut(power));
+            hood.setControl(motionMagic.withPosition(targetPos));
             break;
 
             case LONGSHOT:
-                leftShooter.setControl(
-                    velocityRequest.withVelocity(targetVelocity)
-            );
+            leftShooter.setControl(new DutyCycleOut(power));
+            hood.setControl(motionMagic.withPosition(targetPos));
+            break;
 
-            //hood.setControl(motionMagic.withPosition(targetPos));
+            case PASS:
+            leftShooter.setControl(new DutyCycleOut(power));
+            hood.setControl(motionMagic.withPosition(targetPos));
             break;
         }
 
-        
+            leftShooter.setControl(new DutyCycleOut(power));
+            hood.setControl(motionMagic.withPosition(targetPos));
 
-        SmartDashboard.putNumber("Shooter Velocity", getShooterVelocity());
-        SmartDashboard.putNumber("Shooter Target", targetVelocity);
-        SmartDashboard.putBoolean("Shooter Ready", atSpeed());
+        SmartDashboard.putNumber("hood Encoder", hood.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("hood Target", targetPos);
 
-        SmartDashboard.putNumber("hood Encoder", hoodEncoder.getPosition().getValueAsDouble());
-        //SmartDashboard.putNumber("hood Target", targetPos);
+        SmartDashboard.putNumber("Shooter RPS", leftShooter.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("ShooterTarget", targetVelocity);
+        SmartDashboard.putString("Shooter State", currentState.toString());
     }
 }

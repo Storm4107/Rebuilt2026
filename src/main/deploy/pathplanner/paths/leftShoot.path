@@ -1,0 +1,67 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.4981818181818185,
+        "y": 7.289009740259741
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.807386363636364,
+        "y": 6.420292207792208
+      },
+      "isLocked": false,
+      "linkedName": "ThroughTrenchLeft"
+    },
+    {
+      "anchor": {
+        "x": 3.322727272727273,
+        "y": 5.315990259740261
+      },
+      "prevControl": {
+        "x": 2.7926623376623376,
+        "y": 5.904951298701299
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "fire",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "shortShot",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -45.00000000000008
+  },
+  "reversed": false,
+  "folder": "leftMiddle",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}

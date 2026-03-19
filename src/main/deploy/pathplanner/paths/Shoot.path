@@ -1,0 +1,67 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.4981818181818185,
+        "y": 0.7662662337662334
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.4981818181818185,
+        "y": 0.7662662337662332
+      },
+      "isLocked": false,
+      "linkedName": "OutOfTrench"
+    },
+    {
+      "anchor": {
+        "x": 3.0576948051948056,
+        "y": 2.8276298701298708
+      },
+      "prevControl": {
+        "x": 2.0576948051948056,
+        "y": 2.8276298701298708
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "shortShot",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "fire",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 39.289406862500336
+  },
+  "reversed": false,
+  "folder": "RightMIddle",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}

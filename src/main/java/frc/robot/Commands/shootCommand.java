@@ -2,7 +2,8 @@ package frc.robot.Commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Shooter.ShooterState;
+import frc.robot.subsystems.Shooter.shooterStates;
+import frc.robot.subsystems.Shooter.shooterStates;
 
 public class shootCommand extends Command {
 
@@ -10,10 +11,11 @@ public class shootCommand extends Command {
     private final int preset;
 
     // Array mapping preset numbers to states
-    private final ShooterState[] presets = {
-        ShooterState.IDLE,
-        ShooterState.SHORTSHOT,
-        ShooterState.LONGSHOT
+    private final shooterStates[] presets = {
+        shooterStates.IDLE,
+        shooterStates.SHORTSHOT,
+        shooterStates.LONGSHOT,
+        shooterStates.PASS
     };
 
     public shootCommand(Shooter shooterSub, int preset) {
@@ -38,6 +40,6 @@ public class shootCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-            shooter.setState(ShooterState.IDLE);
+            shooter.setState(shooterStates.IDLE);
     }
 }
