@@ -62,8 +62,8 @@ public class RobotContainer {
 
         NamedCommands.registerCommand("intakeDown", new armCommand(arm, 0).withTimeout(3));
         NamedCommands.registerCommand("intakeIdle", new armCommand(arm, 2));
-        NamedCommands.registerCommand("intake", new intakeCommand(intake, conveyer, breach, true).withTimeout(6));
-        NamedCommands.registerCommand("Outtake", new intakeCommand(intake, conveyer, breach, false));
+        NamedCommands.registerCommand("intake", new intakeCommand(intake, conveyer, breach, false).withTimeout(6));
+        NamedCommands.registerCommand("Outtake", new intakeCommand(intake, conveyer, breach, true));
         NamedCommands.registerCommand("longShot", new shootCommand(shooter, 2));
         NamedCommands.registerCommand("shortShot", new shootCommand(shooter, 1).withTimeout(2));
         NamedCommands.registerCommand("shooterIdle", new shootCommand(shooter, 0));
@@ -93,8 +93,8 @@ public class RobotContainer {
         buttonBoard.pov(0).whileTrue(new shootCommand(shooter, 2));
         buttonBoard.pov(90).whileTrue(new shootCommand(shooter, 3));
         buttonBoard.button(1).whileTrue(new fireCommand(intake, conveyer, breach));
-        buttonBoard.button(6).whileTrue(new intakeCommand(intake, conveyer, breach, true));
-        buttonBoard.axisGreaterThan(3, 0).whileTrue(new intakeCommand(intake, conveyer, breach, false));
+        buttonBoard.button(6).whileTrue(new intakeCommand(intake, conveyer, breach, false));
+        buttonBoard.axisGreaterThan(3, 0).whileTrue(new intakeCommand(intake, conveyer, breach, true));
 
         joystick.button(16).onTrue(new InstantCommand(() -> drivetrain.resetHeading()));
     }
