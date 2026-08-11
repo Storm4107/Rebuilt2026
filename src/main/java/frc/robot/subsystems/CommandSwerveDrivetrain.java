@@ -237,6 +237,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
+    public void resetHeading() {
+        seedFieldCentric();;
+    }
+
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
 
